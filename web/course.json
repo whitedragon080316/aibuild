@@ -1,0 +1,18 @@
+{
+  "title": "你的課程名稱",
+  "subtitle": "一句話描述你的課程",
+  "instructor": "你的名字",
+  "price": 49800,
+  "priceV2": 79800,
+  "stages": [
+    {
+      "id": "s1",
+      "title": "第一階段",
+      "description": "這個階段要學什麼",
+      "lessons": [
+        { "id": "s1-1", "title": "第一堂課", "videoUrl": "", "duration": "15:00" },
+        { "id": "s1-2", "title": "第二堂課", "videoUrl": "", "duration": "15:00" }
+      ]
+    }
+  ]
+}

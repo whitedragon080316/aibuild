@@ -1,0 +1,16 @@
+{
+  "name": "knownu-line-bot",
+  "version": "1.0.0",
+  "description": "LINE Bot for livestream registration",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@line/bot-sdk": "^9.6.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "openai": "^6.32.0",
+    "pg": "^8.20.0"
+  }
+}

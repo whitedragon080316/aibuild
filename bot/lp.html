@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>免費直播課 - {{SYSTEM_NAME}}｜{{BRAND_NAME}}</title>
+<meta name="description" content="80分鐘免費直播，教你一套讓客戶第一次就感受到不同的判斷系統。">
+<meta property="og:title" content="免費直播課 - {{SYSTEM_NAME}}｜{{BRAND_NAME}}">
+<meta property="og:description" content="學了那麼多技巧，客戶還是覺得你跟別人一樣？問題不是技術不夠，是缺一套判斷系統。">
+<meta property="og:image" content="{{OG_IMAGE_URL}}">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon-32.png">
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '{{META_PIXEL_ID}}');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{META_PIXEL_ID}}&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel Code -->
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, 'Noto Sans TC', 'PingFang TC', sans-serif; color: #1a1a1a; line-height: 1.8; background: #fff; font-size: 20px; }
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #f0faf8 0%, #e6f7f4 100%);
+  color: #1a1a2e;
+  padding: 70px 20px 60px;
+  text-align: center;
+}
+.hero .badge {
+  display: inline-block;
+  background: rgba(39,172,178,0.12);
+  border: 1px solid rgba(39,172,178,0.3);
+  color: #1a9e8f;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 8px 22px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+}
+.hero h1 {
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1.4;
+  margin-bottom: 18px;
+  max-width: 650px;
+  margin-left: auto;
+  margin-right: auto;
+  color: #1a1a2e;
+}
+.hero h1 em {
+  font-style: normal;
+  color: #1a9e8f;
+}
+.hero .sub {
+  font-size: 22px;
+  color: #555;
+  margin-bottom: 36px;
+  line-height: 1.9;
+}
+.hero .sub strong { color: #1a1a2e; }
+
+/* CTA Button */
+.cta-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  padding: 18px 48px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.3s;
+  box-shadow: 0 8px 30px rgba(255,107,107,0.35);
+}
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(255,107,107,0.45);
+}
+.cta-note {
+  font-size: 15px;
+  color: #888;
+  margin-top: 14px;
+}
+.cta-note strong { color: #1a9e8f; }
+
+/* Container */
+.container { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+/* Pain Section */
+.pain {
+  background: #fff;
+  padding: 56px 20px;
+}
+.pain h2 {
+  font-size: 36px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 32px;
+  color: #1a1a2e;
+}
+.pain-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 20px;
+  color: #444;
+}
+.pain-item:last-child { border-bottom: none; }
+.pain-x {
+  color: #ef4444;
+  font-weight: 800;
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.pain-answer {
+  text-align: center;
+  margin-top: 32px;
+  padding: 24px;
+  background: #f0faf8;
+  border-radius: 14px;
+  border: 2px solid #27ACB2;
+}
+.pain-answer p {
+  font-size: 19px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+.pain-answer p em {
+  font-style: normal;
+  color: #1a9e8f;
+}
+
+/* What you get */
+.get {
+  background: #fff;
+  padding: 56px 20px;
+}
+.get h2 {
+  font-size: 36px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 32px;
+  color: #1a1a2e;
+}
+.get-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 0;
+  font-size: 20px;
+  color: #444;
+}
+.get-check {
+  color: #27ACB2;
+  font-weight: 800;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+/* Instructor */
+.instructor {
+  background: #f8fafb;
+  padding: 56px 20px;
+  text-align: center;
+}
+.instructor img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 18px;
+  border: 3px solid #27ACB2;
+}
+.instructor h3 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.instructor .role {
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 18px;
+}
+.instructor .quote {
+  font-size: 20px;
+  color: #555;
+  max-width: 540px;
+  margin: 0 auto 28px;
+  line-height: 1.9;
+}
+.instructor .stats {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.instructor .stat {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 24px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+.instructor .stat .num {
+  font-size: 30px;
+  font-weight: 800;
+  color: #1a1a2e;
+  display: block;
+}
+.instructor .stat .label {
+  font-size: 13px;
+  color: #888;
+}
+
+/* Final CTA */
+.final {
+  background: linear-gradient(135deg, #f0faf8 0%, #e6f7f4 100%);
+  color: #1a1a2e;
+  padding: 70px 20px;
+  text-align: center;
+}
+.final h2 {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+.final .urgency {
+  display: inline-block;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.3);
+  color: #FF6B6B;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 10px;
+  margin-bottom: 32px;
+}
+
+/* Sticky mobile CTA */
+.sticky {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255,255,255,0.97);
+  padding: 12px 20px;
+  text-align: center;
+  z-index: 9999;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  border-top: 2px solid #FF6B6B;
+}
+.sticky .cta-btn {
+  font-size: 17px;
+  padding: 14px 32px;
+  width: 100%;
+  max-width: 400px;
+}
+.sticky .sticky-text {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 32px; }
+  .hero .sub { font-size: 18px; }
+  .sticky { display: block; }
+  body { padding-bottom: 90px; font-size: 18px; }
+  .instructor .stats { gap: 10px; }
+  .instructor .stat { padding: 12px 18px; }
+  .pain-item, .get-item { font-size: 18px; }
+  .pain h2, .get h2 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="badge">{{SYSTEM_NAME}}｜80 分鐘免費直播課</div>
+    <h1>{{HERO_HEADLINE}}</h1>
+    <p class="sub">
+      {{HERO_SUBHEADLINE}}
+    </p>
+    <a href="https://{{BOT_DOMAIN}}/track?src=fb_chirosystem3" class="cta-btn" onclick="fbq('track','Lead');">{{CTA_TEXT}}</a>
+    <p class="cta-note">加 LINE 就能報名，<strong>不用填表、不用付費</strong></p>
+  </div>
+</section>
+
+<!-- PAIN POINTS -->
+<section class="pain">
+  <div class="container">
+    <h2>你是不是也遇到這些問題？</h2>
+    {{PAIN_POINTS}}
+    <!--
+    預設範例格式（用 server-side 替換整個 {{PAIN_POINTS}} 區塊）：
+    <div class="pain-item"><span class="pain-x" style="color:#e53935">✕</span>服務完客戶說不錯，但下次就不來了</div>
+    <div class="pain-item"><span class="pain-x" style="color:#e53935">✕</span>學了很多技巧，不知道什麼時候該用哪一招</div>
+    <div class="pain-item"><span class="pain-x" style="color:#e53935">✕</span>效果不穩定，有時有效有時沒效</div>
+    <div class="pain-item"><span class="pain-x" style="color:#e53935">✕</span>客戶感受不到你跟其他人的差異</div>
+    -->
+    <div class="pain-answer">
+      <p>這些問題的根源都一樣：<br>你缺的不是更多技巧，是一套<em>讓所有技巧都用對地方</em>的系統</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHO NEEDS THIS -->
+<section style="background:#fff;padding:56px 20px;">
+  <div class="container">
+    <h2 style="font-size:36px;font-weight:800;text-align:center;margin-bottom:12px;color:#1a1a2e;">這場直播適合誰？</h2>
+    <p style="text-align:center;color:#888;margin-bottom:32px;font-size:18px;">不論你現在在哪個階段，只要你不想原地踏步。</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      {{TARGET_AUDIENCE_CARDS}}
+      <!--
+      預設範例格式（用 server-side 替換整個 {{TARGET_AUDIENCE_CARDS}} 區塊）：
+      <div style="background:#f8fafb;border-radius:14px;padding:22px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:8px;">👤</div>
+        <div style="font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">目標受眾 A</div>
+        <div style="font-size:16px;color:#888;line-height:1.7;">描述痛點和期望結果</div>
+      </div>
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section style="background:#f8fafb;padding:56px 20px;">
+  <div class="container">
+    <h2 style="font-size:26px;font-weight:800;text-align:center;margin-bottom:32px;color:#1a1a2e;">他們跟你一樣，都是從「想改變」開始的</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      {{TESTIMONIALS}}
+      <!--
+      預設範例格式（用 server-side 替換整個 {{TESTIMONIALS}} 區塊）：
+      <div style="background:#fff;border-radius:14px;padding:22px;border-left:4px solid #27ACB2;box-shadow:0 2px 10px rgba(0,0,0,.04);">
+        <div style="font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">學員名稱 — 背景</div>
+        <div style="font-size:18px;color:#555;line-height:1.8;">起點描述<br>→ <strong style="color:#e53935;">成果數據</strong><br>→ 現況</div>
+      </div>
+      -->
+    </div>
+    <p style="text-align:center;margin-top:24px;font-size:16px;color:#888;font-style:italic;">{{TESTIMONIAL_QUOTE}}</p>
+  </div>
+</section>
+
+<!-- INSTRUCTOR -->
+<section class="instructor">
+  <div class="container">
+    <img src="{{INSTRUCTOR_PHOTO_URL}}" alt="{{INSTRUCTOR_NAME}}">
+    <h3>{{INSTRUCTOR_NAME}}</h3>
+    <div class="role">{{INSTRUCTOR_TITLE}}</div>
+    <p class="quote">{{INSTRUCTOR_BIO}}</p>
+    <div class="stats">
+      {{INSTRUCTOR_STATS}}
+      <!--
+      預設範例格式（用 server-side 替換整個 {{INSTRUCTOR_STATS}} 區塊）：
+      <div class="stat"><span class="num">15年</span><span class="label">實戰經驗</span></div>
+      <div class="stat"><span class="num">10,000+</span><span class="label">服務人次</span></div>
+      <div class="stat"><span class="num">51+</span><span class="label">位學員驗證</span></div>
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- CREDENTIALS -->
+<section style="background:#fff;padding:40px 20px;">
+  <div class="container" style="text-align:center;">
+    <p style="font-size:14px;color:#999;margin-bottom:16px;letter-spacing:2px;">認證與經歷</p>
+    <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;">
+      {{CREDENTIALS}}
+      <!--
+      預設範例格式（用 server-side 替換整個 {{CREDENTIALS}} 區塊）：
+      <div style="background:#f8fafb;border-radius:10px;padding:14px 24px;font-size:15px;color:#555;">🏆 認證名稱</div>
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- CTA 2 -->
+<section style="background:#f0faf8;padding:48px 20px;text-align:center;">
+  <div class="container">
+    <a href="https://{{BOT_DOMAIN}}/track?src=fb_chirosystem3" class="cta-btn" onclick="fbq('track','Lead');">{{CTA_TEXT}}</a>
+    <p class="cta-note">不用填表、不用付費，<strong>加 LINE 就完成報名</strong></p>
+  </div>
+</section>
+
+<!-- THREE LEVELS -->
+<section style="background:#fff;padding:56px 20px;">
+  <div class="container">
+    <h2 style="font-size:26px;font-weight:800;text-align:center;margin-bottom:12px;color:#1a1a2e;">市場上的課這麼多，差在哪？</h2>
+    <p style="text-align:center;color:#888;margin-bottom:32px;font-size:16px;">不是每套課都能幫你賺到錢。看看三個層次的差異。</p>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="background:#f8fafb;border-radius:14px;padding:22px;border-left:4px solid #ccc;">
+        <div style="font-size:13px;color:#999;font-weight:600;margin-bottom:4px;">第 1 層 · 90% 的課在這</div>
+        <div style="font-size:18px;font-weight:700;color:#888;">{{LEVEL1_TITLE}}</div>
+        <div style="font-size:15px;color:#999;margin-top:6px;">{{LEVEL1_DESC}}</div>
+      </div>
+      <div style="background:#f8fafb;border-radius:14px;padding:22px;border-left:4px solid #aaa;">
+        <div style="font-size:13px;color:#999;font-weight:600;margin-bottom:4px;">第 2 層 · 少數課做到</div>
+        <div style="font-size:18px;font-weight:700;color:#666;">{{LEVEL2_TITLE}}</div>
+        <div style="font-size:15px;color:#999;margin-top:6px;">{{LEVEL2_DESC}}</div>
+      </div>
+      <div style="background:#f0faf8;border-radius:14px;padding:22px;border-left:4px solid #27ACB2;box-shadow:0 4px 16px rgba(39,172,178,.12);">
+        <div style="font-size:13px;color:#27ACB2;font-weight:700;margin-bottom:4px;">第 3 層 · {{SYSTEM_NAME}}在這裡</div>
+        <div style="font-size:20px;font-weight:800;color:#1a1a2e;">{{LEVEL3_TITLE}}</div>
+        <div style="font-size:15px;color:#555;margin-top:6px;">{{LEVEL3_DESC}}</div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:20px;font-size:15px;color:#888;">你要繼續待在第一層，還是直接跳到第三層？</p>
+  </div>
+</section>
+
+<!-- TIMELINE COMPARISON -->
+<section style="background:#f8fafb;padding:56px 20px;">
+  <div class="container">
+    <h2 style="font-size:26px;font-weight:800;text-align:center;margin-bottom:12px;color:#1a1a2e;">同樣在學，結果差在哪？</h2>
+    <p style="text-align:center;color:#888;margin-bottom:32px;font-size:16px;">不是努力的問題，是你選的路不一樣。</p>
+    <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:15px;">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:12px;color:#999;font-size:13px;border-bottom:2px solid #e0e0e0;width:25%"></th>
+          <th style="text-align:center;padding:12px;color:#999;font-size:13px;border-bottom:2px solid #e0e0e0;width:37%">一般課程</th>
+          <th style="text-align:center;padding:12px;color:#27ACB2;font-size:13px;font-weight:700;border-bottom:2px solid #27ACB2;width:37%">{{SYSTEM_NAME}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{COMPARISON_ROWS}}
+        <!--
+        預設範例格式（用 server-side 替換整個 {{COMPARISON_ROWS}} 區塊）：
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:14px 12px;font-weight:600;color:#888;">學完當天</td>
+          <td style="padding:14px 12px;text-align:center;color:#999;">一般課程的結果</td>
+          <td style="padding:14px 12px;text-align:center;color:#1a1a2e;font-weight:600;">你的系統的結果</td>
+        </tr>
+        -->
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT YOU GET -->
+<section class="get">
+  <div class="container">
+    <h2>加 LINE 後你馬上得到</h2>
+    {{WHAT_YOU_GET}}
+    <!--
+    預設範例格式（用 server-side 替換整個 {{WHAT_YOU_GET}} 區塊）：
+    <div class="get-item"><span class="get-check">✓</span><strong>贈品名稱</strong>— 贈品描述</div>
+    <div class="get-item"><span class="get-check">✓</span>80 分鐘免費直播，<strong>不用付費、不用填表</strong>，加 LINE 就完成報名</div>
+    -->
+  </div>
+</section>
+
+<!-- FAQ -->
+<section style="background:#f8fafb;padding:56px 20px;">
+  <div class="container">
+    <h2 style="font-size:26px;font-weight:800;text-align:center;margin-bottom:32px;color:#1a1a2e;">常見問答</h2>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      {{FAQ_ITEMS}}
+      <!--
+      預設範例格式（用 server-side 替換整個 {{FAQ_ITEMS}} 區塊）：
+      <details style="background:#fff;border-radius:12px;padding:18px 22px;box-shadow:0 2px 8px rgba(0,0,0,.04);cursor:pointer;">
+        <summary style="font-size:20px;font-weight:700;color:#1a1a2e;list-style:none;display:flex;justify-content:space-between;align-items:center;">問題？<span style="color:#27ACB2;font-size:20px;">+</span></summary>
+        <p style="margin-top:12px;font-size:15px;color:#555;line-height:1.8;">回答。</p>
+      </details>
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- GUARANTEE -->
+<section style="background:#fff;padding:56px 20px;">
+  <div class="container" style="text-align:center;">
+    <h2 style="font-size:36px;font-weight:800;color:#1a1a2e;margin-bottom:20px;">我們的承諾</h2>
+    <div style="background:#f0faf8;border:2px solid #27ACB2;border-radius:16px;padding:32px;max-width:560px;margin:0 auto;">
+      {{GUARANTEE_CONTENT}}
+      <!--
+      預設範例格式（用 server-side 替換整個 {{GUARANTEE_CONTENT}} 區塊）：
+      <div style="font-size:36px;margin-bottom:12px;">🛡️</div>
+      <div style="font-size:24px;font-weight:800;color:#1a1a2e;margin-bottom:12px;">承諾標題</div>
+      <p style="font-size:17px;color:#555;line-height:1.8;margin-bottom:16px;">承諾內容說明。</p>
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final">
+  <div class="container">
+    <h2>{{FINAL_HEADLINE}}</h2>
+    <div class="urgency" id="urgency-text">下一場直播：載入中...</div>
+    <br>
+    <a href="https://{{BOT_DOMAIN}}/track?src=fb_chirosystem3" class="cta-btn" onclick="fbq('track','Lead');">{{CTA_TEXT}}</a>
+    <p class="cta-note" style="color:#64748b;">加 LINE 就完成報名，立即領取 <strong style="color:#38b2ac;">{{LEAD_MAGNET_NAME}}</strong></p>
+  </div>
+</section>
+
+<!-- STICKY MOBILE CTA -->
+<div class="sticky">
+  <div class="sticky-text" id="sticky-date">🔴 載入中...｜<span id="countdown" style="color:#e53935;font-weight:700;"></span></div>
+  <a href="https://{{BOT_DOMAIN}}/track?src=fb_chirosystem3" class="cta-btn" onclick="fbq('track','Lead');">{{CTA_TEXT_SHORT}}</a>
+</div>
+
+<script>
+// Show sticky CTA after scrolling past hero
+(function(){
+  var sticky = document.querySelector('.sticky');
+  if (!sticky) return;
+  window.addEventListener('scroll', function(){
+    if (window.innerWidth > 768) return;
+    sticky.style.display = window.scrollY > 500 ? 'block' : 'none';
+  });
+})();
+
+// 動態載入下一場直播日期
+(function(){
+  fetch('/api/next-session').then(function(r){return r.json()}).then(function(data){
+    var urgency = document.getElementById('urgency-text');
+    var stickyDate = document.getElementById('sticky-date');
+    var el = document.getElementById('countdown');
+    if (!data.hasSession) {
+      if (urgency) urgency.textContent = '直播場次籌備中，敬請期待！';
+      if (stickyDate) stickyDate.innerHTML = '🔴 直播場次籌備中';
+      return;
+    }
+    var label = data.label;
+    if (urgency) urgency.textContent = '下一場直播：' + label + ' ' + data.time;
+    if (stickyDate) stickyDate.innerHTML = '🔴 ' + label + ' ' + data.time + ' 免費直播｜<span id="countdown" style="color:#e53935;font-weight:700;"></span>';
+    // Countdown
+    if (!data.iso) return;
+    var target = new Date(data.iso);
+    el = document.getElementById('countdown');
+    if (!el) return;
+    function update(){
+      var now = new Date();
+      var diff = target - now;
+      if (diff <= 0) { el.textContent = '直播中！'; return; }
+      var d = Math.floor(diff / 86400000);
+      var h = Math.floor((diff % 86400000) / 3600000);
+      var m = Math.floor((diff % 3600000) / 60000);
+      var s = Math.floor((diff % 60000) / 1000);
+      el.textContent = (d > 0 ? d + '天 ' : '') + h + '時 ' + m + '分 ' + s + '秒';
+    }
+    update();
+    setInterval(update, 1000);
+  }).catch(function(){
+    var urgency = document.getElementById('urgency-text');
+    if (urgency) urgency.textContent = '下一場直播：敬請期待！';
+  });
+})();
+</script>
+
+</body>
+</html>

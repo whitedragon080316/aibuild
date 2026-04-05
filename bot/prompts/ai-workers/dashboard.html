@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{BRAND_NAME}} — AI 工具人自動化儀表板</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Noto Sans TC', sans-serif; background: linear-gradient(135deg, #f0f4ff 0%, #fafbff 50%, #f5f0ff 100%); color: #1a1a2e; line-height: 1.8; }
+
+  .hero {
+    min-height: 35vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    background: linear-gradient(135deg, #e8eeff 0%, #f0f4ff 50%, #ede8ff 100%);
+    text-align: center; padding: 50px 20px; border-bottom: 1px solid #e0e4ef;
+  }
+  .hero h1 {
+    font-size: 2.4em; letter-spacing: 2px; margin-bottom: 8px;
+    background: linear-gradient(135deg, #5B9BD5, #7B68EE);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero .subtitle { font-size: 1.1em; color: #888; margin-bottom: 20px; }
+  .hero .core-quote {
+    font-size: 0.95em; color: #5B9BD5; border: 1px solid #5B9BD544;
+    padding: 16px 24px; border-radius: 12px; background: #5B9BD50a; max-width: 560px;
+  }
+
+  .container { max-width: 920px; margin: 0 auto; padding: 0 20px; }
+  section { padding: 50px 0; border-bottom: 1px solid #e8ecf2; }
+
+  h2 {
+    font-size: 1.6em; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, #5B9BD5, #7B68EE);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  h2 .num {
+    display: inline-flex; width: 36px; height: 36px; border-radius: 50%;
+    font-size: 0.55em; font-weight: 800; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  h3 { font-size: 1.05em; color: #5B9BD5; margin: 18px 0 10px; }
+  p, li { color: #666; font-size: 0.92em; }
+  p { margin-bottom: 10px; }
+  ul { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+
+  .card { background: #fff; border: 1px solid #e0e4ef; border-radius: 14px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .card.highlight { border-color: #5B9BD544; background: #5B9BD506; }
+  .card.gold { border-color: #f0a03044; background: #fdf6ec; }
+  .card.done { border-color: #4caf5044; background: #f0faf0; }
+  .card.todo { border-color: #ccc; background: #fafafa; opacity: 0.75; }
+
+  .flow {
+    background: #f7f8fa; border: 1px solid #e0e4ef; border-radius: 10px;
+    padding: 20px; margin: 16px 0; font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.82em; color: #666; line-height: 2; white-space: pre-wrap;
+  }
+  .flow .hl { color: #5B9BD5; }
+  .flow .ok { color: #2e7d32; }
+  .flow .warn { color: #e65100; }
+  .flow .you { color: #c77600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th { background: #eef2f9; color: #5B9BD5; padding: 10px 14px; text-align: left; font-size: 0.82em; border-bottom: 2px solid #d8dfe8; }
+  td { padding: 10px 14px; border-bottom: 1px solid #eef0f4; font-size: 0.88em; color: #666; }
+  tr:hover td { background: #f5f7fc; }
+
+  .tag {
+    display: inline-block; padding: 3px 10px; border-radius: 16px;
+    font-size: 0.72em; font-weight: 600; margin: 2px;
+  }
+  .tag.done { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+  .tag.wip { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+  .tag.todo { background: #f5f5f5; color: #999; border: 1px solid #e0e0e0; }
+  .tag.file { background: #e8f0fb; color: #5B9BD5; border: 1px solid #cddcf0; font-family: 'SF Mono', monospace; font-size: 0.68em; }
+
+  .progress-dashboard {
+    background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); border: 1px solid #e0e4ef; border-radius: 18px;
+    padding: 36px; margin: 30px auto; max-width: 920px; box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+  }
+  .progress-total { text-align: center; margin-bottom: 30px; }
+  .progress-total .pct {
+    font-size: 3.5em; font-weight: 900;
+    color: #5B9BD5;
+  }
+  .progress-total .pct-label { font-size: 0.85em; color: #888; margin-top: 4px; }
+  .progress-bar-wrap { background: #e8ecf2; border-radius: 8px; height: 16px; margin: 14px 0 8px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 8px; }
+
+  .sys-section { margin-bottom: 28px; background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #eef0f4; box-shadow: 0 1px 4px rgba(0,0,0,0.03); }
+  .sys-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+    padding-bottom: 8px; border-bottom: 1px solid #eef0f4;
+    background: transparent;
+  }
+  .sys-header .sys-icon {
+    width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 15px; flex-shrink: 0; font-weight: 800;
+  }
+  .sys-header .sys-title { font-size: 1em; color: #444; font-weight: 700; }
+  .sys-header .sys-pct { font-size: 0.82em; color: #888; margin-left: auto; }
+  .sys-bar { background: #e8ecf2; border-radius: 5px; height: 7px; overflow: hidden; margin-bottom: 12px; }
+  .sys-bar-fill { height: 100%; border-radius: 5px; }
+
+  .worker-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0 8px 48px;
+    border-bottom: 1px solid #f0f2f5; font-size: 0.88em;
+  }
+  .worker-row:last-child { border-bottom: none; }
+  .worker-check { font-size: 15px; flex-shrink: 0; }
+  .worker-check.done { color: #4caf50; }
+  .worker-check.wip { color: #ff9800; }
+  .worker-check.todo { color: #ccc; }
+  .worker-name { color: #444; flex: 1; }
+  .worker-name.done { color: #aaa; text-decoration: line-through; }
+  .worker-file { font-family: 'SF Mono', monospace; font-size: 0.72em; color: #5B9BD5; }
+  .worker-status { font-size: 0.72em; margin-left: auto; flex-shrink: 0; }
+
+  .task-list { margin-top: 20px; }
+  .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eef0f4; font-size: 0.88em; }
+  .task-item:last-child { border-bottom: none; }
+  .task-check { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .task-check.done { color: #4caf50; }
+  .task-check.wip { color: #ff9800; }
+  .task-check.todo { color: #ccc; }
+  .task-text { color: #444; }
+  .task-text.done { color: #aaa; text-decoration: line-through; }
+  .task-date { font-size: 0.72em; color: #888; margin-left: auto; flex-shrink: 0; }
+
+  .pipeline { display: flex; gap: 0; margin: 24px 0; overflow-x: auto; padding-bottom: 10px; }
+  .pipe-step { flex: 1; min-width: 130px; position: relative; text-align: center; }
+  .pipe-box {
+    background: #fff; border: 1px solid #d8dfe8; border-radius: 12px;
+    padding: 14px 8px; margin: 0 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .pipe-box.done { border-color: #4caf50; background: #f0faf0; }
+  .pipe-box.wip { border-color: #ff9800; background: #fff8f0; }
+  .pipe-box .pipe-icon { font-size: 1.4em; margin-bottom: 4px; }
+  .pipe-box .pipe-label { font-size: 0.75em; color: #444; font-weight: 600; }
+  .pipe-box .pipe-sub { font-size: 0.62em; color: #888; margin-top: 3px; }
+  .pipe-arrow { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); color: #ccc; font-size: 1.1em; z-index: 1; }
+  .pipe-arrow.active { color: #4caf50; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 600px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.8em; }
+    .pipeline { flex-wrap: wrap; }
+    .pipe-step { min-width: 100%; }
+    .pipe-arrow { display: none; }
+    .worker-row { padding-left: 20px; }
+  }
+
+  .resume-box {
+    background: linear-gradient(135deg, #eef4fb, #f0ecff);
+    border: 1px solid #d0d8e8; border-radius: 14px; padding: 24px; margin: 20px 0;
+  }
+  .resume-box h3 { color: #5B9BD5; }
+  .file-ref {
+    font-family: 'SF Mono', monospace; font-size: 0.8em; color: #5B9BD5;
+    background: #e8f0fb; padding: 2px 8px; border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>AI Workers Dashboard</h1>
+  <div class="subtitle">{{BRAND_NAME}} — AI 工具人自動化系統</div>
+  <div class="core-quote">
+    對齊{{INSTRUCTOR_NAME}}影響力藍圖的六大系統<br>
+    每個系統配置對應的 AI 工具人，缺口一目了然
+  </div>
+</div>
+
+<!-- ===== PROGRESS: 六大系統 × AI 工具人 ===== -->
+<div class="progress-dashboard">
+  <div class="progress-total">
+    <div class="pct">18%</div>
+    <div class="pct-label">AI 工具人自動化完成度（對齊藍圖六大系統）</div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" style="width:18%; background:linear-gradient(90deg,#3fb950,#ffd700,#ff8c00);"></div>
+  </div>
+
+  <!-- ===== System 1: 內容引擎 ===== -->
+  <div class="sys-section">
+    <div class="sys-header">
+      <div class="sys-icon" style="background:#3fb95022; color:#3fb950;">1</div>
+      <div class="sys-title">內容引擎 — 一次產出，十倍擴散</div>
+      <div class="sys-pct">40%</div>
+    </div>
+    <div class="sys-bar"><div class="sys-bar-fill" style="width:40%; background:#3fb950;"></div></div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">逐字稿產出（MLX Whisper GPU）</span>
+      <span class="worker-status"><span class="tag done">完成</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">AI 挑精華片段 + 自動剪直式短影片</span>
+      <span class="worker-status"><span class="tag done">完成</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check wip">&#9679;</span>
+      <span class="worker-name">內容工廠（腳本x5 + 金句x10 + 推播x4）</span>
+      <span class="worker-status"><span class="tag wip">Prompt 完成</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check wip">&#9679;</span>
+      <span class="worker-name">開源短影音機器人：自動發布 IG Reels/YT Shorts/TikTok + 追蹤標記</span>
+      <span class="worker-status"><span class="tag wip">進行中</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">Podcast 音檔自動產出</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+  </div>
+
+  <!-- ===== System 2: 破圈入口 ===== -->
+  <div class="sys-section">
+    <div class="sys-header">
+      <div class="sys-icon" style="background:#58a6ff22; color:#58a6ff;">2</div>
+      <div class="sys-title">破圈入口 — 讓陌生人主動找你</div>
+      <div class="sys-pct">0%</div>
+    </div>
+    <div class="sys-bar"><div class="sys-bar-fill" style="width:0%; background:#58a6ff;"></div></div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">互動檢測工具（Web + Claude API → 個人化報告）</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">5 天體驗挑戰（LINE Bot 自動推送 5 天）</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">爭議性觀點短影片自動產出（Hook 公式驅動）</span>
+      <span class="worker-status"><span class="tag todo">內容工廠可覆蓋</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">跨界合作邀約（自動研究 + 產出合作提案）</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+  </div>
+
+  <!-- ===== System 3: 信任漏斗 ===== -->
+  <div class="sys-section">
+    <div class="sys-header">
+      <div class="sys-icon" style="background:#ffd70022; color:#ffd700;">3</div>
+      <div class="sys-title">信任漏斗 — 全自動轉換</div>
+      <div class="sys-pct">60%</div>
+    </div>
+    <div class="sys-bar"><div class="sys-bar-fill" style="width:60%; background:linear-gradient(90deg,#ffd700,#ff8c00);"></div></div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">Meta 廣告 → LP → 加 LINE 漏斗</span>
+      <span class="worker-status"><span class="tag done">已在跑</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">LINE Bot 歡迎 + 報名 + 提醒序列</span>
+      <span class="worker-status"><span class="tag done">已在跑</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">銷售漏斗分析（/funnel skill）</span>
+      <span class="worker-status"><span class="tag done">完成</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check wip">&#9679;</span>
+      <span class="worker-name">追單文案工具人（6波 x 3版本）</span>
+      <span class="worker-status"><span class="tag wip">Prompt 完成</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">追單文案自動寫入 Bot 環境變數</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">廣告素材 AI 自動產出 + A/B 測試建議</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">分眾行為標籤（到課/未到課/回放）自動分流</span>
+      <span class="worker-status"><span class="tag done">完成</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">再行銷可觀測性（/status + /resend + confirm 保護）</span>
+      <span class="worker-status"><span class="tag done">完成</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">知識庫（docs/ + CLAUDE.md + pitfalls.md）</span>
+      <span class="worker-status"><span class="tag done">完成</span></span>
+    </div>
+  </div>
+
+  <!-- ===== System 4: 交付系統 ===== -->
+  <div class="sys-section">
+    <div class="sys-header">
+      <div class="sys-icon" style="background:#ff6b6b22; color:#ff6b6b;">4</div>
+      <div class="sys-title">交付系統 — AI 分身 + 自動教學</div>
+      <div class="sys-pct">15%</div>
+    </div>
+    <div class="sys-bar"><div class="sys-bar-fill" style="width:15%; background:#ff6b6b;"></div></div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">AI 分身 v1（雙模式 prompt + Notion 知識庫）</span>
+      <span class="worker-status"><span class="tag done">完成</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">每日/每週學習任務自動推送</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">學員進度追蹤 + 自動提醒</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">結業見證自動收集 → 回流內容引擎</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+  </div>
+
+  <!-- ===== System 5: 社群生態 ===== -->
+  <div class="sys-section">
+    <div class="sys-header">
+      <div class="sys-icon" style="background:#c084fc22; color:#c084fc;">5</div>
+      <div class="sys-title">社群生態 — 從學員變成運動</div>
+      <div class="sys-pct">0%</div>
+    </div>
+    <div class="sys-bar"><div class="sys-bar-fill" style="width:0%; background:#c084fc;"></div></div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">免費社群自動餵養（內容引擎產出 → 定期發社團）</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">學員互評互助機制（Bot 配對 + 提醒）</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">認證教練管理系統</span>
+      <span class="worker-status"><span class="tag todo">之後</span></span>
+    </div>
+  </div>
+
+  <!-- ===== System 6: 商業模式 ===== -->
+  <div class="sys-section">
+    <div class="sys-header">
+      <div class="sys-icon" style="background:#f9731622; color:#f97316;">6</div>
+      <div class="sys-title">商業模式 — 多層收入自動滾</div>
+      <div class="sys-pct">10%</div>
+    </div>
+    <div class="sys-bar"><div class="sys-bar-fill" style="width:10%; background:#f97316;"></div></div>
+    <div class="worker-row">
+      <span class="worker-check done">&#10003;</span>
+      <span class="worker-name">$43,800 課程銷售漏斗</span>
+      <span class="worker-status"><span class="tag done">已在跑</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">upsell 自動推薦（結業 → 進階課程/認證）</span>
+      <span class="worker-status"><span class="tag todo">待建</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">第二賽道：AI 自動化課程</span>
+      <span class="worker-status"><span class="tag todo">之後</span></span>
+    </div>
+    <div class="worker-row">
+      <span class="worker-check todo">&#9675;</span>
+      <span class="worker-name">第三賽道：線上課程銷售系統</span>
+      <span class="worker-status"><span class="tag todo">之後</span></span>
+    </div>
+  </div>
+
+  <!-- Task Checklist -->
+  <div class="task-list">
+    <h3 style="color:#2e7d32; margin-bottom:14px; font-size:0.95em;">已完成的建置</h3>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">auto_shorts.sh（下載+逐字稿+剪片）</span><span class="task-date">已完成</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">pick_clips.py（AI 自動挑精華片段）</span><span class="task-date">已完成</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">/funnel skill（Meta Ads 漏斗分析）</span><span class="task-date">已完成</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">/shorts skill（一鍵觸發短影音流程）</span><span class="task-date">已完成</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">chase-copywriter.md（追單文案 prompt）</span><span class="task-date">03/25</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">content-factory.md（內容工廠 prompt）</span><span class="task-date">03/25</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">post-livestream-pipeline.md（主控流程）</span><span class="task-date">03/25</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">worker-scorecard.md（績效檢核表）</span><span class="task-date">03/25</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">/remarketing/status + /resend 端點</span><span class="task-date">03/26</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">knownu-line-bot 知識庫（docs/ + CLAUDE.md）</span><span class="task-date">03/26</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">/log Skill Step 4 閉環</span><span class="task-date">03/26</span></div>
+    <div class="task-item"><span class="task-check done">&#10003;</span><span class="task-text done">deploy hook 自動觸發 /log</span><span class="task-date">03/26</span></div>
+
+    <h3 style="color:#e65100; margin-bottom:14px; margin-top:20px; font-size:0.95em;">下一步行動</h3>
+    <div class="task-item"><span class="task-check wip">&#9679;</span><span class="task-text">0331 直播實戰驗證 pipeline（內容引擎）</span><span class="task-date">03/31</span></div>
+    <div class="task-item"><span class="task-check todo">&#9675;</span><span class="task-text">追單文案自動寫入 Bot 環境變數（信任漏斗）</span><span class="task-date"></span></div>
+    <div class="task-item"><span class="task-check todo">&#9675;</span><span class="task-text">AI 分身 v0.1 接入 LINE Bot（交付系統）</span><span class="task-date"></span></div>
+    <div class="task-item"><span class="task-check todo">&#9675;</span><span class="task-text">互動檢測工具（破圈入口）</span><span class="task-date"></span></div>
+    <div class="task-item"><span class="task-check todo">&#9675;</span><span class="task-text">5 天挑戰賽寫進 Bot（破圈入口）</span><span class="task-date"></span></div>
+    <div class="task-item"><span class="task-check todo">&#9675;</span><span class="task-text">全平台排程自動發布（內容引擎）</span><span class="task-date"></span></div>
+    <div class="task-item"><span class="task-check todo">&#9675;</span><span class="task-text">廣告素材 AI 產出（信任漏斗）</span><span class="task-date"></span></div>
+    <div class="task-item"><span class="task-check todo">&#9675;</span><span class="task-text">社群自動餵養（社群生態）</span><span class="task-date"></span></div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ===== PIPELINE ===== -->
+<section>
+  <h2>直播後自動化 Pipeline（內容引擎核心）</h2>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-box done"><div class="pipe-icon">&#127909;</div><div class="pipe-label">直播</div><div class="pipe-sub">你給 YT 連結</div></div>
+      <div class="pipe-arrow active">&#10132;</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box done"><div class="pipe-icon">&#128221;</div><div class="pipe-label">逐字稿</div><div class="pipe-sub">Whisper GPU</div></div>
+      <div class="pipe-arrow active">&#10132;</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box done"><div class="pipe-icon">&#9986;</div><div class="pipe-label">剪片</div><div class="pipe-sub">AI 挑段 x5</div></div>
+      <div class="pipe-arrow active">&#10132;</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box wip"><div class="pipe-icon">&#9997;</div><div class="pipe-label">內容工廠</div><div class="pipe-sub">腳本+金句+推播</div></div>
+      <div class="pipe-arrow">&#10132;</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box wip"><div class="pipe-icon">&#128172;</div><div class="pipe-label">追單文案</div><div class="pipe-sub">6波 x 3版本</div></div>
+      <div class="pipe-arrow">&#10132;</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-box"><div class="pipe-icon">&#128203;</div><div class="pipe-label">SUMMARY</div><div class="pipe-sub">你 review 6min</div></div>
+    </div>
+  </div>
+
+  <div class="card gold">
+    <h3 style="color:#c77600;">觸發方式</h3>
+    <div class="flow">跟 Claude Code 說：<span class="you">「跑直播後流程 [YouTube 連結]」</span>
+
+全部自動跑完 → 你只看 SUMMARY.md（6 分鐘）
+
+<span class="hl">主控流程文件：</span>{{BOT_DIR}}/prompts/ai-workers/post-livestream-pipeline.md</div>
+  </div>
+</section>
+
+<!-- ===== SCORECARD ===== -->
+<section>
+  <h2>工具人績效檢核</h2>
+
+  <div class="card highlight">
+    <p>每次跑完 pipeline，每個環節 4-5 個維度打 1-5 分。<strong style="color:#c77600;">平均 3.5 = 合格</strong>。連續 2 次 < 3 分 = 調 prompt。</p>
+    <p><span class="file-ref">完整檢核表 → {{BOT_DIR}}/prompts/ai-workers/worker-scorecard.md</span></p>
+  </div>
+
+  <table>
+    <thead><tr><th>環節</th><th>評分維度</th><th>KPI</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="color:#2e7d32;">逐字稿+剪片</td>
+        <td>準確度 / 挑選品質 / 起止點</td>
+        <td>clips.txt 手動調 < 2 段</td>
+      </tr>
+      <tr>
+        <td style="color:#5B9BD5;">內容工廠</td>
+        <td>Hook 吸引力 / 痛點共鳴 / 技術語言 / {{INSTRUCTOR_NAME}} 風格 / CTA</td>
+        <td>直接採用率 > 70%</td>
+      </tr>
+      <tr>
+        <td style="color:#e65100;">追單文案</td>
+        <td>第一句 / 急迫節奏 / 分眾差異 / 異議處理 / 轉換潛力</td>
+        <td>追單佔營收 > 25%</td>
+      </tr>
+      <tr>
+        <td style="color:#c77600;">銷售分析</td>
+        <td>數據準確 / 洞察深度 / 可執行性</td>
+        <td>ROAS > 15x</td>
+      </tr>
+      <tr>
+        <td style="color:#7B68EE;">AI 分身（待建）</td>
+        <td>回覆準確率 / {{SYSTEM_NAME}}邏輯一致性</td>
+        <td>轉人工率 < 20%</td>
+      </tr>
+      <tr>
+        <td style="color:#e65100;">互動檢測（待建）</td>
+        <td>完成率 / 報告分享率</td>
+        <td>加 LINE 轉換 > 30%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-color:#ff6b6b44;">
+    <h3 style="color:#e65100;">警報規則</h3>
+    <table>
+      <tr><td style="color:#e65100;">Worker 平均 < 3 分 x 2 次</td><td>調 prompt</td></tr>
+      <tr><td style="color:#e65100;">採用率 < 50%</td><td>重寫 prompt 或換方法</td></tr>
+      <tr><td style="color:#e65100;">你的介入 > 20 分鐘</td><td>找瓶頸自動化</td></tr>
+      <tr><td style="color:#e65100;">Pipeline > 1 小時</td><td>檢查卡在哪步</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===== RESUME ===== -->
+<section>
+  <h2>接續工作指引（Claude 新 Session 看這裡）</h2>
+
+  <div class="resume-box">
+    <h3>每次開新對話，先讀這些就能接手</h3>
+    <div class="flow"><span class="hl">1. 讀儀表板（本檔）</span>
+   {{BOT_DIR}}/prompts/ai-workers/dashboard.html
+   → 六大系統 × AI 工具人全貌、進度、缺口
+
+<span class="hl">2. 讀主控流程</span>
+   {{BOT_DIR}}/prompts/ai-workers/post-livestream-pipeline.md
+   → 直播後 pipeline 怎麼跑
+
+<span class="hl">3. 讀各工具人 prompt</span>
+   {{BOT_DIR}}/prompts/ai-workers/chase-copywriter.md
+   {{BOT_DIR}}/prompts/ai-workers/content-factory.md
+
+<span class="hl">4. 讀績效檢核表</span>
+   {{BOT_DIR}}/prompts/ai-workers/worker-scorecard.md
+
+<span class="hl">5. 讀上位策略藍圖</span>
+   {{STRATEGY_DIR}}/index.html
+   → 六大系統完整定義、商業模式、對標分析
+
+<span class="hl">6. 讀 LINE Bot 程式碼（要改功能時）</span>
+   {{BOT_DIR}}/index.js</div>
+  </div>
+
+  <div class="card">
+    <h3>檔案地圖</h3>
+    <div class="flow"><span class="ok">{{STRATEGY_DIR}}/</span>                         <span class="you">← 上位藍圖</span>
+  index.html                    ← 影響力藍圖（六大系統定義）
+  auto_shorts.sh                ← 內容引擎: 直播→短影片
+  pick_clips.py                 ← 內容引擎: AI 挑精華片段
+  content_MMDD/                 ← 每次直播的產出資料夾
+
+<span class="hl">{{BOT_DIR}}/</span>                     <span class="you">← AI 工具人系統</span>
+  index.js                      ← LINE Bot 主程式（信任漏斗+交付系統）
+  prompts/ai-workers/
+    dashboard.html              ← 本儀表板
+    post-livestream-pipeline.md ← 內容引擎: 主控流程
+    chase-copywriter.md         ← 信任漏斗: 追單文案 prompt
+    content-factory.md          ← 內容引擎: 內容工廠 prompt
+    worker-scorecard.md         ← 績效檢核表
+
+<span class="warn">待建清單（按系統分）：</span>
+  破圈入口: 互動檢測 Web App / 5天挑戰 Bot 邏輯
+  交付系統: AI 分身 prompt + Claude API 接入
+  社群生態: 社群自動餵養機制
+  商業模式: upsell 自動推薦</div>
+  </div>
+
+  <div class="card gold">
+    <h3 style="color:#c77600;">執行優先級（從藍圖反推）</h3>
+    <table>
+      <thead><tr><th>#</th><th>任務</th><th>屬於系統</th><th>為什麼先做</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#e65100;">1</td><td>0331 直播跑完整 pipeline</td><td>內容引擎</td><td>驗證已建的工具人</td></tr>
+        <tr><td style="color:#e65100;">2</td><td>追單自動寫入 Bot</td><td>信任漏斗</td><td>直接影響營收</td></tr>
+        <tr><td style="color:#e65100;">3</td><td>AI 分身 v0.1</td><td>交付系統</td><td>學員體驗 + 你的時間釋放最大</td></tr>
+        <tr><td style="color:#e65100;">4</td><td>互動檢測工具</td><td>破圈入口</td><td>破圈 0% 是最大缺口，自帶傳播力</td></tr>
+        <tr><td style="color:#c77600;">5</td><td>5 天挑戰賽</td><td>破圈+信任</td><td>提高轉換率（5次接觸 > 1次）</td></tr>
+        <tr><td style="color:#c77600;">6</td><td>排程自動發布</td><td>內容引擎</td><td>產出有了，缺自動發布</td></tr>
+        <tr><td style="color:#888;">7</td><td>社群自動餵養</td><td>社群生態</td><td>等內容引擎穩定後串接</td></tr>
+        <tr><td style="color:#888;">8</td><td>第二賽道課程</td><td>商業模式</td><td>等第一賽道跑順</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<div style="text-align:center; padding:40px; color:#888; font-size:0.75em;">
+  Last updated: 2026-04-04 | AI Workers v2.0 — Template Version
+</div>
+
+</body>
+</html>
