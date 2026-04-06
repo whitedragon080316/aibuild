@@ -108,16 +108,13 @@ spec:
     # === 課程平台 Web ===
     - name: web
       icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/nodejs.svg
-      template: GIT
+      template: PREBUILT
       domainKey: PUBLIC_DOMAIN
       dependencies:
         - mongodb
       spec:
         source:
-          github:
-            repoID: 1201875017
-            branch: main
-            subDirectory: web
+          image: ghcr.io/whitedragon080316/aibuild/web:latest
         ports:
           - id: web
             port: 3000
@@ -158,16 +155,13 @@ spec:
     # === LINE Bot ===
     - name: bot
       icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/nodejs.svg
-      template: GIT
+      template: PREBUILT
       domainKey: BOT_DOMAIN
       dependencies:
         - mongodb
       spec:
         source:
-          github:
-            repoID: 1201875017
-            branch: main
-            subDirectory: bot
+          image: ghcr.io/whitedragon080316/aibuild/bot:latest
         ports:
           - id: bot
             port: 3000
@@ -207,47 +201,3 @@ spec:
     - type: DOMAIN
       title: LINE Bot Webhook
       content: ${BOT_DOMAIN}/callback
-
-locales:
-  zh-TW:
-    description: 一鍵部署完整線上課程自動化系統（課程網站 + LINE Bot + 金流 + 廣告追蹤）
-    variables:
-      - key: SITE_NAME
-        name: 課程名稱
-        description: 你的課程名稱，會顯示在網站標題和 LP
-      - key: BRAND_NAME
-        name: 品牌名
-        description: 你的品牌名稱
-      - key: INSTRUCTOR_NAME
-        name: 講師名字
-        description: 你的名字，顯示在 LP 講師區
-      - key: LINE_CHANNEL_TOKEN
-        name: LINE Channel Access Token
-        description: 從 LINE Developers Console 取得
-      - key: LINE_CHANNEL_SECRET
-        name: LINE Channel Secret
-        description: 從 LINE Developers Console 取得
-      - key: ADMIN_USER_ID
-        name: 管理者 LINE User ID
-        description: 你自己的 LINE User ID（Bot 會把通知推給你）
-      - key: TAPPAY_PARTNER_KEY
-        name: TapPay Partner Key
-        description: 從 TapPay 後台取得
-      - key: TAPPAY_MERCHANT_ID
-        name: TapPay Merchant ID
-        description: 從 TapPay 後台取得
-      - key: TAPPAY_APP_ID
-        name: TapPay App ID
-        description: 從 TapPay 後台取得
-      - key: TAPPAY_APP_KEY
-        name: TapPay App Key
-        description: 從 TapPay 後台取得
-      - key: META_PIXEL_ID
-        name: Meta Pixel ID
-        description: 選填，用於廣告轉換追蹤
-      - key: PUBLIC_DOMAIN
-        name: 課程網站網域
-        description: 課程平台的網域
-      - key: BOT_DOMAIN
-        name: LINE Bot 網域
-        description: LINE Bot 的 Webhook 網域
