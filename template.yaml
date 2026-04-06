@@ -4,11 +4,11 @@ metadata:
   name: AI 造局術
 spec:
   description: 一鍵部署完整線上課程自動化系統（課程網站 + LINE Bot + 金流 + 廣告追蹤）
-  icon: https://raw.githubusercontent.com/whitedragon080316/aibuild/main/web/public/icon.png
+  icon: https://raw.githubusercontent.com/whitedragon080316/aibuild/main/icon.png
   tags:
     - Website
     - Bot
-  coverImage: https://raw.githubusercontent.com/whitedragon080316/aibuild/main/web/public/cover.png
+  coverImage: https://raw.githubusercontent.com/whitedragon080316/aibuild/main/cover.png
   readme: |
     ## AI 造局術 — 線上課程自動化部署模板
 
