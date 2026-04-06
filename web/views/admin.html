@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>後台管理 — {{siteName}}</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Noto Sans TC', 'Segoe UI', sans-serif;
+  background: #f0f4ff;
+  min-height: 100vh;
+  color: #1e293b;
+}
+.header {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header h1 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+}
+.header .actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.header .actions a {
+  font-size: 13px;
+  color: #64748b;
+  text-decoration: none;
+}
+.header .actions a:hover { color: #5B9BD5; }
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+.stage-badge {
+  display: inline-block;
+  background: #ede9fe;
+  color: #7B68EE;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-left: 8px;
+}
+.section {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 8px rgba(91,155,213,0.06);
+  margin-bottom: 16px;
+  overflow: hidden;
+  border: 1px solid #e8edf5;
+}
+.section-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.section-header:hover { background: #f8faff; }
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.status-ok { background: #dcfce7; color: #16a34a; }
+.status-no { background: #f1f5f9; color: #94a3b8; }
+.chevron {
+  font-size: 14px;
+  color: #94a3b8;
+  transition: transform 0.2s;
+  margin-left: 12px;
+}
+.section.open .chevron { transform: rotate(180deg); }
+.section-body {
+  display: none;
+  padding: 0 20px 20px;
+  border-top: 1px solid #f1f5f9;
+}
+.section.open .section-body { display: block; padding-top: 16px; }
+.field {
+  margin-bottom: 16px;
+}
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 5px;
+}
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.field input, .field select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s;
+  background: #fff;
+}
+.field input:focus, .field select:focus {
+  border-color: #5B9BD5;
+  box-shadow: 0 0 0 3px rgba(91,155,213,0.1);
+}
+.toggle-pw {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.toggle-pw:hover { color: #5B9BD5; }
+.field .hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.btn {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary {
+  background: linear-gradient(135deg, #5B9BD5, #7B68EE);
+  color: #fff;
+}
+.btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1e293b;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 100;
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.env-toggle {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  width: fit-content;
+}
+.env-toggle button {
+  padding: 8px 20px;
+  border: none;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.env-toggle button.active {
+  background: #5B9BD5;
+  color: #fff;
+}
+.test-result {
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+  display: none;
+}
+.test-ok { display: block; background: #dcfce7; color: #16a34a; }
+.test-fail { display: block; background: #fef2f2; color: #dc2626; }
+.provider-toggle {
+  display: flex; gap: 12px;
+}
+.provider-btn {
+  flex: 1; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: #fff; cursor: pointer; text-align: center; transition: all 0.2s;
+  font-size: 14px; color: #1e293b; line-height: 1.5;
+}
+.provider-btn:hover { border-color: #5B9BD5; }
+.provider-btn.active {
+  border-color: #5B9BD5; background: #f0f7ff;
+  box-shadow: 0 0 0 3px rgba(91,155,213,0.15);
+}
+@media (max-width: 600px) {
+  .container { padding: 16px 10px 40px; }
+  .section-header { padding: 14px 16px; }
+  .section-body { padding: 0 16px 16px; }
+  .section.open .section-body { padding-top: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>&#9881;&#65039; 後台管理</h1>
+  <div class="actions">
+    <a href="/">前往首頁</a>
+    <a href="/dashboard">數據儀表板</a>
+    <a href="/admin/logout">登出</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 品牌設定 -->
+  <div class="section open" data-section="brand">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">
+        品牌設定
+        <span class="stage-badge">S2 品牌建立</span>
+        <span class="status" id="status-brand"></span>
+      </div>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label>課程名稱</label>
+        <input type="text" id="siteName" placeholder="例：AI 造局術">
+      </div>
+      <div class="field">
+        <label>品牌名稱</label>
+        <input type="text" id="brandName" placeholder="例：knowu 國際顧問">
+      </div>
+      <div class="field">
+        <label>講師名稱</label>
+        <input type="text" id="instructorName" placeholder="例：張老師">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveSection('brand')">儲存品牌設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 金流設定 -->
+  <div class="section" data-section="payment">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">
+        金流設定
+        <span class="stage-badge">S3 金流串接</span>
+        <span class="status" id="status-payment"></span>
+      </div>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label>選擇金流</label>
+        <div class="provider-toggle" id="providerToggle">
+          <button data-val="tappay" onclick="setProvider(this)" class="provider-btn">
+            <strong>TapPay</strong><br><span style="font-size:11px;color:#94a3b8;">信用卡 3D Secure</span>
+          </button>
+          <button data-val="ecpay" onclick="setProvider(this)" class="provider-btn">
+            <strong>綠界 ECPay</strong><br><span style="font-size:11px;color:#94a3b8;">信用卡 / 超商 / ATM</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TapPay fields -->
+      <div id="tappayFields" style="display:none;">
+        <div class="field">
+          <label>Partner Key</label>
+          <div class="input-wrap">
+            <input type="password" id="tappayPartnerKey" placeholder="partner_...">
+            <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Merchant ID</label>
+          <div class="input-wrap">
+            <input type="password" id="tappayMerchantId" placeholder="your_merchant_id">
+            <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>App ID</label>
+          <input type="text" id="tappayAppId" placeholder="12348">
+        </div>
+        <div class="field">
+          <label>App Key</label>
+          <div class="input-wrap">
+            <input type="password" id="tappayAppKey" placeholder="app_...">
+            <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>環境</label>
+          <div class="env-toggle" id="tappayEnvToggle">
+            <button data-val="sandbox" onclick="setEnv(this)">Sandbox 測試</button>
+            <button data-val="production" onclick="setEnv(this)">Production 正式</button>
+          </div>
+          <div class="hint">正式上線前請先在 Sandbox 測試成功</div>
+        </div>
+      </div>
+
+      <!-- ECPay fields -->
+      <div id="ecpayFields" style="display:none;">
+        <div class="field">
+          <label>特店編號 (Merchant ID)</label>
+          <div class="input-wrap">
+            <input type="password" id="ecpayMerchantId" placeholder="2000132">
+            <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+          </div>
+          <div class="hint">測試用：2000132</div>
+        </div>
+        <div class="field">
+          <label>HashKey</label>
+          <div class="input-wrap">
+            <input type="password" id="ecpayHashKey" placeholder="5294y06JbISpM5x9">
+            <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+          </div>
+          <div class="hint">測試用：5294y06JbISpM5x9</div>
+        </div>
+        <div class="field">
+          <label>HashIV</label>
+          <div class="input-wrap">
+            <input type="password" id="ecpayHashIV" placeholder="v77hoKGq4kWxNNIS">
+            <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+          </div>
+          <div class="hint">測試用：v77hoKGq4kWxNNIS</div>
+        </div>
+        <div class="field">
+          <label>環境</label>
+          <div class="env-toggle" id="ecpayEnvToggle">
+            <button data-val="stage" onclick="setEnv(this)">Stage 測試</button>
+            <button data-val="production" onclick="setEnv(this)">Production 正式</button>
+          </div>
+          <div class="hint">測試階段用 Stage，上線改 Production</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveSection('payment')">儲存金流設定</button>
+        <button class="btn btn-secondary" onclick="testPayment()">測試連線</button>
+      </div>
+      <div class="test-result" id="paymentTestResult"></div>
+    </div>
+  </div>
+
+  <!-- LINE Bot -->
+  <div class="section" data-section="line">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">
+        LINE Bot
+        <span class="stage-badge">S4 LINE 串接</span>
+        <span class="status" id="status-line"></span>
+      </div>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label>Channel Access Token</label>
+        <div class="input-wrap">
+          <input type="password" id="lineChannelToken" placeholder="Channel Access Token">
+          <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Channel Secret</label>
+        <div class="input-wrap">
+          <input type="password" id="lineChannelSecret" placeholder="Channel Secret">
+          <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>管理者 User ID</label>
+        <div class="input-wrap">
+          <input type="password" id="adminUserId" placeholder="U...">
+          <button class="toggle-pw" onclick="togglePw(this)">顯示</button>
+        </div>
+        <div class="hint">管理者的 LINE User ID，用於接收通知</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveSection('line')">儲存 LINE 設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 廣告追蹤 -->
+  <div class="section" data-section="tracking">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">
+        廣告追蹤
+        <span class="stage-badge">S5 廣告投放</span>
+        <span class="status" id="status-tracking"></span>
+      </div>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label>Meta Pixel ID</label>
+        <input type="text" id="metaPixelId" placeholder="1234567890">
+        <div class="hint">Facebook / Instagram 廣告追蹤像素</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveSection('tracking')">儲存追蹤設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 進階設定 -->
+  <div class="section" data-section="advanced">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">
+        進階設定
+        <span class="stage-badge">S8 進階優化</span>
+        <span class="status" id="status-advanced"></span>
+      </div>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label>公開網址 (Public Base URL)</label>
+        <input type="text" id="publicBaseUrl" placeholder="https://your-domain.com">
+        <div class="hint">TapPay 3D Secure 回調用，必須是可公開存取的 HTTPS 網址</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveSection('advanced')">儲存進階設定</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SECTION_FIELDS = {
+  brand: ['siteName', 'brandName', 'instructorName'],
+  payment: ['paymentProvider', 'tappayPartnerKey', 'tappayMerchantId', 'tappayAppId', 'tappayAppKey', 'tappayEnv', 'ecpayMerchantId', 'ecpayHashKey', 'ecpayHashIV', 'ecpayEnv'],
+  line: ['lineChannelToken', 'lineChannelSecret', 'adminUserId'],
+  tracking: ['metaPixelId'],
+  advanced: ['publicBaseUrl'],
+};
+
+let currentSettings = {};
+
+// Load settings on page load
+(async function() {
+  try {
+    const res = await fetch('/admin/api/settings');
+    if (res.status === 401) {
+      window.location.href = '/admin/login';
+      return;
+    }
+    currentSettings = await res.json();
+    populateFields();
+    updateStatuses();
+  } catch (e) {
+    console.error('Failed to load settings:', e);
+  }
+})();
+
+function populateFields() {
+  for (const fields of Object.values(SECTION_FIELDS)) {
+    for (const f of fields) {
+      if (f === 'tappayEnv' || f === 'ecpayEnv' || f === 'paymentProvider') continue;
+      const el = document.getElementById(f);
+      if (el && currentSettings[f]) {
+        el.value = currentSettings[f];
+      }
+    }
+  }
+  // TapPay env toggle
+  const tpEnv = currentSettings.tappayEnv || 'sandbox';
+  document.querySelectorAll('#tappayEnvToggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === tpEnv);
+  });
+  // ECPay env toggle
+  const ecEnv = currentSettings.ecpayEnv || 'stage';
+  document.querySelectorAll('#ecpayEnvToggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === ecEnv);
+  });
+  // Payment provider
+  const provider = currentSettings.paymentProvider || '';
+  if (provider) setProviderUI(provider);
+}
+
+function updateStatuses() {
+  const s = currentSettings;
+  setStatus('brand', !!(s.siteName && s.brandName));
+  const payOk = s.paymentProvider === 'tappay' ? !!(s.tappayPartnerKey && s.tappayMerchantId) :
+                s.paymentProvider === 'ecpay' ? !!(s.ecpayMerchantId && s.ecpayHashKey) : false;
+  setStatus('payment', payOk);
+  setStatus('line', !!(s.lineChannelToken && s.lineChannelSecret));
+  setStatus('tracking', !!s.metaPixelId);
+  setStatus('advanced', !!s.publicBaseUrl);
+}
+
+function setStatus(section, ok) {
+  const el = document.getElementById('status-' + section);
+  if (!el) return;
+  el.className = 'status ' + (ok ? 'status-ok' : 'status-no');
+  el.textContent = ok ? '已設定' : '未設定';
+}
+
+function toggleSection(header) {
+  header.closest('.section').classList.toggle('open');
+}
+
+function togglePw(btn) {
+  const input = btn.previousElementSibling;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '隱藏';
+  } else {
+    input.type = 'password';
+    btn.textContent = '顯示';
+  }
+}
+
+function setEnv(btn) {
+  btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setProvider(btn) {
+  setProviderUI(btn.dataset.val);
+}
+
+function setProviderUI(provider) {
+  document.querySelectorAll('.provider-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === provider);
+  });
+  document.getElementById('tappayFields').style.display = provider === 'tappay' ? 'block' : 'none';
+  document.getElementById('ecpayFields').style.display = provider === 'ecpay' ? 'block' : 'none';
+}
+
+function getSelectedProvider() {
+  const active = document.querySelector('.provider-btn.active');
+  return active ? active.dataset.val : '';
+}
+
+async function testPayment() {
+  const provider = getSelectedProvider();
+  if (!provider) { showToast('請先選擇金流'); return; }
+  const resultEl = document.getElementById('paymentTestResult');
+  resultEl.className = 'test-result';
+  resultEl.style.display = 'block';
+  resultEl.textContent = '測試中...';
+  try {
+    const res = await fetch('/admin/api/test-payment', { method: 'POST' });
+    const result = await res.json();
+    resultEl.className = 'test-result ' + (result.success ? 'test-ok' : 'test-fail');
+    resultEl.textContent = result.success ? '連線成功' : '連線失敗：' + (result.message || '請檢查金鑰');
+  } catch (e) {
+    resultEl.className = 'test-result test-fail';
+    resultEl.textContent = '測試失敗：網路錯誤';
+  }
+}
+
+async function saveSection(section) {
+  const fields = SECTION_FIELDS[section];
+  const data = {};
+  for (const f of fields) {
+    if (f === 'tappayEnv') {
+      const a = document.querySelector('#tappayEnvToggle button.active');
+      data[f] = a ? a.dataset.val : 'sandbox';
+    } else if (f === 'ecpayEnv') {
+      const a = document.querySelector('#ecpayEnvToggle button.active');
+      data[f] = a ? a.dataset.val : 'stage';
+    } else if (f === 'paymentProvider') {
+      data[f] = getSelectedProvider();
+    } else {
+      data[f] = document.getElementById(f).value;
+    }
+  }
+
+  try {
+    const res = await fetch('/admin/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.status === 401) {
+      window.location.href = '/admin/login';
+      return;
+    }
+    const result = await res.json();
+    if (result.success) {
+      Object.assign(currentSettings, data);
+      updateStatuses();
+      showToast('已儲存');
+    } else {
+      showToast('儲存失敗：' + (result.message || ''));
+    }
+  } catch (e) {
+    showToast('網路錯誤');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>

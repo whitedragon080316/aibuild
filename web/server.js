@@ -4,12 +4,22 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
+const session = require('express-session');
 
 const User = require('./models/User');
 const Payment = require('./models/Payment');
+const { getSettings, updateSettings } = require('./lib/settings');
 const { initBot, webhookMiddleware, onPaymentSuccess } = require('./lib/line-bot');
 
 const app = express();
+
+// Session for admin auth
+app.use(session({
+  secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24h
+}));
 
 // LINE webhook needs raw body for signature verification
 app.post('/webhook', express.json({
@@ -20,6 +30,23 @@ app.post('/webhook', express.json({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// Setup redirect middleware — if setup not completed, redirect to /setup
+app.use(async (req, res, next) => {
+  // Skip for static, webhook, health, and setup routes
+  if (req.path.startsWith('/public') || req.path === '/webhook' || req.path === '/health' || req.path.startsWith('/setup')) {
+    return next();
+  }
+  try {
+    const settings = await getSettings();
+    if (!settings.setupCompleted) {
+      return res.redirect('/setup');
+    }
+  } catch (e) {
+    // DB not ready, let it through
+  }
+  next();
+});
 
 // Load course data
 const courseData = JSON.parse(fs.readFileSync(path.join(__dirname, 'course.json'), 'utf8'));
@@ -43,51 +70,181 @@ function servePage(res, filename, vars = {}) {
   res.send(html);
 }
 
+// ============ SETUP & ADMIN ROUTES ============
+
+// Helper: get a setting with env fallback
+async function cfg(key, envKey, fallback) {
+  const settings = await getSettings();
+  return settings[key] || process.env[envKey] || fallback;
+}
+
+// --- Setup Wizard ---
+app.get('/setup', async (req, res) => {
+  const settings = await getSettings();
+  if (settings.setupCompleted) return res.redirect('/admin');
+  servePage(res, 'setup.html', {});
+});
+
+app.post('/setup', async (req, res) => {
+  try {
+    const settings = await getSettings();
+    if (settings.setupCompleted) {
+      return res.json({ success: false, message: '已完成設定' });
+    }
+    const { siteName, brandName, instructorName, adminPassword } = req.body;
+    if (!siteName || !brandName || !instructorName || !adminPassword) {
+      return res.json({ success: false, message: '請填寫所有欄位' });
+    }
+    await updateSettings({
+      siteName, brandName, instructorName, adminPassword,
+      setupCompleted: true
+    });
+    // Auto-login after setup
+    req.session.adminAuth = true;
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Setup error:', e);
+    res.json({ success: false, message: '設定失敗' });
+  }
+});
+
+// --- Admin Auth Middleware ---
+function requireAdmin(req, res, next) {
+  if (req.session && req.session.adminAuth) return next();
+  if (req.headers.accept && req.headers.accept.includes('application/json')) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  res.redirect('/admin/login');
+}
+
+// --- Admin Login ---
+app.get('/admin/login', (req, res) => {
+  servePage(res, 'admin-login.html', {});
+});
+
+app.post('/admin/login', async (req, res) => {
+  const { password } = req.body;
+  const settings = await getSettings();
+  if (!settings.adminPassword) {
+    return res.json({ success: false, message: '尚未設定密碼，請先完成初始設定' });
+  }
+  if (password === settings.adminPassword) {
+    req.session.adminAuth = true;
+    res.json({ success: true });
+  } else {
+    res.json({ success: false, message: '密碼錯誤' });
+  }
+});
+
+app.get('/admin/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/admin/login');
+});
+
+// --- Admin Dashboard ---
+app.get('/admin', requireAdmin, async (req, res) => {
+  const siteName = await cfg('siteName', 'SITE_NAME', 'My Course');
+  servePage(res, 'admin.html', { siteName });
+});
+
+// --- Admin API ---
+app.get('/admin/api/settings', requireAdmin, async (req, res) => {
+  const settings = await getSettings();
+  // Don't expose adminPassword to frontend
+  const safe = { ...settings };
+  delete safe.adminPassword;
+  delete safe._id;
+  delete safe.__v;
+  res.json(safe);
+});
+
+app.post('/admin/api/settings', requireAdmin, async (req, res) => {
+  try {
+    // Don't allow changing setupCompleted or adminPassword through this endpoint
+    const data = { ...req.body };
+    delete data.setupCompleted;
+    delete data.adminPassword;
+    await updateSettings(data);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Settings update error:', e);
+    res.json({ success: false, message: '更新失敗' });
+  }
+});
+
+app.post('/admin/api/test-tappay', requireAdmin, async (req, res) => {
+  try {
+    const settings = await getSettings();
+    const partnerKey = settings.tappayPartnerKey || process.env.TAPPAY_PARTNER_KEY || '';
+    const env = settings.tappayEnv || process.env.TAPPAY_ENV || 'sandbox';
+    if (!partnerKey) {
+      return res.json({ success: false, message: '尚未設定 Partner Key' });
+    }
+    const base = env === 'production' ? 'https://prod.tappaysdk.com' : 'https://sandbox.tappaysdk.com';
+    const result = await callTapPay(base + '/tpc/transaction/query', {
+      partner_key: partnerKey,
+      filters: { order_number: '__test__' }
+    });
+    // status 0 = success (empty results is fine), status 2 means auth fail
+    if (result.status === 0 || result.number_of_transactions === 0) {
+      res.json({ success: true });
+    } else {
+      res.json({ success: false, message: result.msg || '認證失敗' });
+    }
+  } catch (e) {
+    res.json({ success: false, message: '連線失敗：' + e.message });
+  }
+});
+
 // ============ ROUTES ============
 
 // LP 落地頁
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   servePage(res, 'lp.html', {
-    siteName: process.env.SITE_NAME || 'AI 造局術',
-    brandName: process.env.BRAND_NAME || 'knowu 國際顧問',
+    siteName: await cfg('siteName', 'SITE_NAME', 'AI 造局術'),
+    brandName: await cfg('brandName', 'BRAND_NAME', 'knowu 國際顧問'),
     courseData: JSON.stringify(courseData)
   });
 });
 
 // 直播 LP（廣告導流用）
-app.get('/live', (req, res) => {
+app.get('/live', async (req, res) => {
   servePage(res, 'live.html', {
-    siteName: process.env.SITE_NAME || 'AI 造局術',
-    brandName: process.env.BRAND_NAME || 'knowu 國際顧問'
+    siteName: await cfg('siteName', 'SITE_NAME', 'AI 造局術'),
+    brandName: await cfg('brandName', 'BRAND_NAME', 'knowu 國際顧問')
   });
 });
 
 // === TapPay 金流 ===
-const TAPPAY_PARTNER_KEY = process.env.TAPPAY_PARTNER_KEY || '';
-const TAPPAY_MERCHANT_ID = process.env.TAPPAY_MERCHANT_ID || '';
-const TAPPAY_APP_ID = process.env.TAPPAY_APP_ID || '12348';
-const TAPPAY_APP_KEY = process.env.TAPPAY_APP_KEY || 'app_pa1pQwXUzaRoMd7svcJawNKgWOBIlBBsIfiPlTZy7ZOiPgCaRKkRGeYRAV1Y';
-const TAPPAY_ENV = process.env.TAPPAY_ENV || 'sandbox';
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || process.env.SITE_URL || 'https://aibuilding.zeabur.app';
-const TAPPAY_BASE = TAPPAY_ENV === 'production' ? 'https://prod.tappaysdk.com' : 'https://sandbox.tappaysdk.com';
-const TAPPAY_API = TAPPAY_BASE + '/tpc/payment/pay-by-prime';
-const TAPPAY_RECORD_API = TAPPAY_BASE + '/tpc/transaction/query';
+// These are loaded dynamically from settings with env fallback
+async function getTapPayConfig() {
+  const settings = await getSettings();
+  const partnerKey = settings.tappayPartnerKey || process.env.TAPPAY_PARTNER_KEY || '';
+  const merchantId = settings.tappayMerchantId || process.env.TAPPAY_MERCHANT_ID || '';
+  const appId = settings.tappayAppId || process.env.TAPPAY_APP_ID || '12348';
+  const appKey = settings.tappayAppKey || process.env.TAPPAY_APP_KEY || 'app_pa1pQwXUzaRoMd7svcJawNKgWOBIlBBsIfiPlTZy7ZOiPgCaRKkRGeYRAV1Y';
+  const env = settings.tappayEnv || process.env.TAPPAY_ENV || 'sandbox';
+  const publicBaseUrl = settings.publicBaseUrl || process.env.PUBLIC_BASE_URL || process.env.SITE_URL || 'https://aibuilding.zeabur.app';
+  const base = env === 'production' ? 'https://prod.tappaysdk.com' : 'https://sandbox.tappaysdk.com';
+  return { partnerKey, merchantId, appId, appKey, env, publicBaseUrl, base, payApi: base + '/tpc/payment/pay-by-prime', recordApi: base + '/tpc/transaction/query' };
+}
 
 // 結帳頁
-app.get('/checkout', (req, res) => {
+app.get('/checkout', async (req, res) => {
+  const tp = await getTapPayConfig();
   const plan = req.query.plan === 'v2' ? 'v2' : 'v1';
   const price = plan === 'v2' ? (courseData.priceV2 || 79800) : courseData.price;
   servePage(res, 'checkout.html', {
-    siteName: process.env.SITE_NAME || 'AI 造局術',
-    brandName: process.env.BRAND_NAME || 'knowu 國際顧問',
+    siteName: await cfg('siteName', 'SITE_NAME', 'AI 造局術'),
+    brandName: await cfg('brandName', 'BRAND_NAME', 'knowu 國際顧問'),
     price,
     courseTitle: courseData.title,
     plan,
     priceV1: courseData.price,
     priceV2: courseData.priceV2 || 79800,
-    tappayAppId: TAPPAY_APP_ID,
-    tappayAppKey: TAPPAY_APP_KEY,
-    tappayEnv: TAPPAY_ENV,
+    tappayAppId: tp.appId,
+    tappayAppKey: tp.appKey,
+    tappayEnv: tp.env,
   });
 });
 
@@ -96,9 +253,10 @@ function callTapPay(url, data) {
   return new Promise((resolve, reject) => {
     const https = require('https');
     const postData = JSON.stringify(data);
+    const apiKey = data.partner_key || '';
     const req = https.request(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': TAPPAY_PARTNER_KEY }
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey }
     }, (res) => {
       let body = '';
       res.on('data', d => body += d);
@@ -115,6 +273,7 @@ function callTapPay(url, data) {
 // TapPay 付款 API（3D Secure）
 app.post('/api/pay', async (req, res) => {
   try {
+    const tp = await getTapPayConfig();
     const { prime, name, email, phone, plan } = req.body;
     if (!prime) return res.status(400).json({ success: false, message: '缺少付款資訊' });
 
@@ -139,10 +298,10 @@ app.post('/api/pay', async (req, res) => {
     });
 
     // 呼叫 TapPay Pay by Prime API（含 3D Secure）
-    const result = await callTapPay(TAPPAY_API, {
+    const result = await callTapPay(tp.payApi, {
       prime,
-      partner_key: TAPPAY_PARTNER_KEY,
-      merchant_id: TAPPAY_MERCHANT_ID,
+      partner_key: tp.partnerKey,
+      merchant_id: tp.merchantId,
       amount,
       currency: 'TWD',
       details: planLabel,
@@ -155,8 +314,8 @@ app.post('/api/pay', async (req, res) => {
       remember: false,
       three_domain_secure: true,
       result_url: {
-        frontend_redirect_url: PUBLIC_BASE_URL + '/api/tappay/return',
-        backend_notify_url: PUBLIC_BASE_URL + '/api/tappay/notify'
+        frontend_redirect_url: tp.publicBaseUrl + '/api/tappay/return',
+        backend_notify_url: tp.publicBaseUrl + '/api/tappay/notify'
       }
     });
 
@@ -200,8 +359,9 @@ app.get('/api/tappay/return', async (req, res) => {
   if (String(status) === '0' && order_number) {
     // 用 Record API 確認交易狀態
     try {
-      const record = await callTapPay(TAPPAY_RECORD_API, {
-        partner_key: TAPPAY_PARTNER_KEY,
+      const tp = await getTapPayConfig();
+      const record = await callTapPay(tp.recordApi, {
+        partner_key: tp.partnerKey,
         filters: { order_number }
       });
 
@@ -264,7 +424,7 @@ app.post('/api/tappay/notify', async (req, res) => {
 app.get('/checkout/success', async (req, res) => {
   const { order, token } = req.query;
   servePage(res, 'success.html', {
-    brandName: process.env.BRAND_NAME || 'knowu 國際顧問',
+    brandName: await cfg('brandName', 'BRAND_NAME', 'knowu 國際顧問'),
     courseTitle: courseData.title,
     token: token || '',
     courseUrl: `/course?token=${token || ''}`
@@ -272,9 +432,9 @@ app.get('/checkout/success', async (req, res) => {
 });
 
 // 課程預覽（管理者用）
-app.get('/course/preview', (req, res) => {
+app.get('/course/preview', async (req, res) => {
   servePage(res, 'course.html', {
-    brandName: process.env.BRAND_NAME || 'knowu 國際顧問',
+    brandName: await cfg('brandName', 'BRAND_NAME', 'knowu 國際顧問'),
     courseData: JSON.stringify(courseData),
     userName: '預覽模式',
     token: 'preview'
@@ -290,7 +450,7 @@ app.get('/course', async (req, res) => {
   if (!user) return res.redirect('/?msg=invalid-token');
 
   servePage(res, 'course.html', {
-    brandName: process.env.BRAND_NAME || 'knowu 國際顧問',
+    brandName: await cfg('brandName', 'BRAND_NAME', 'knowu 國際顧問'),
     courseData: JSON.stringify(courseData),
     userName: user.name || '學員',
     token
@@ -367,7 +527,7 @@ app.get('/dashboard', async (req, res) => {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>數據儀表板 — ${process.env.SITE_NAME || 'knowu'}</title>
+<title>數據儀表板 — ${await cfg('siteName', 'SITE_NAME', 'knowu')}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,'Noto Sans TC',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;padding:32px 20px}
@@ -402,7 +562,7 @@ td{font-size:14px;padding:8px 12px;border-bottom:1px solid #1e293b}
 <body>
 <div class="container">
 <h1>數據儀表板</h1>
-<div class="sub">${process.env.SITE_NAME || 'knowu'} — ${new Date().toLocaleString('zh-TW', {timeZone:'Asia/Taipei'})}</div>
+<div class="sub">${await cfg('siteName', 'SITE_NAME', 'knowu')} — ${new Date().toLocaleString('zh-TW', {timeZone:'Asia/Taipei'})}</div>
 
 <div class="cards">
   <div class="card"><div class="num">${data.totalUsers}</div><div class="label">總用戶</div></div>

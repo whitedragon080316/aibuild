@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>後台登入</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Noto Sans TC', 'Segoe UI', sans-serif;
+  background: #f0f4ff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(91,155,213,0.12);
+  padding: 40px 36px;
+  max-width: 400px;
+  width: 100%;
+}
+h1 {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 24px;
+}
+.field {
+  margin-bottom: 18px;
+}
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 5px;
+}
+.field input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #1e293b;
+  outline: none;
+}
+.field input:focus {
+  border-color: #5B9BD5;
+  box-shadow: 0 0 0 3px rgba(91,155,213,0.1);
+}
+.btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #5B9BD5, #7B68EE);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.btn:hover { opacity: 0.9; }
+.error {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  display: none;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>&#128274; 後台登入</h1>
+  <div class="error" id="error"></div>
+  <form id="loginForm">
+    <div class="field">
+      <label>管理員密碼</label>
+      <input type="password" name="password" placeholder="輸入密碼" required autofocus>
+    </div>
+    <button type="submit" class="btn">登入</button>
+  </form>
+</div>
+<script>
+const form = document.getElementById('loginForm');
+const errorEl = document.getElementById('error');
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorEl.style.display = 'none';
+  const data = Object.fromEntries(new FormData(form));
+  try {
+    const res = await fetch('/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      window.location.href = '/admin';
+    } else {
+      errorEl.textContent = result.message || '密碼錯誤';
+      errorEl.style.display = 'block';
+    }
+  } catch (err) {
+    errorEl.textContent = '網路錯誤';
+    errorEl.style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
