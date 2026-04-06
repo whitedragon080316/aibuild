@@ -1,0 +1,253 @@
+apiVersion: zeabur.com/v1
+kind: Template
+metadata:
+  name: AI 造局術
+spec:
+  description: 一鍵部署完整線上課程自動化系統（課程網站 + LINE Bot + 金流 + 廣告追蹤）
+  icon: https://raw.githubusercontent.com/whitedragon080316/aibuild/main/web/public/icon.png
+  tags:
+    - Website
+    - Bot
+  coverImage: https://raw.githubusercontent.com/whitedragon080316/aibuild/main/web/public/cover.png
+  readme: |
+    ## AI 造局術 — 線上課程自動化部署模板
+
+    一個人 + AI = 一間公司。這套模板包含：
+
+    - **課程平台**（LP + 結帳 + TapPay 3D Secure + 課程觀看 + 進度追蹤）
+    - **LINE Bot**（報名 + 4 次提醒 + 6 波追單 + AI 回覆）
+    - **MongoDB**（用戶 + 付款 + 報名 + 再行銷資料）
+
+    ### 部署後你得到
+
+    ```
+    Meta 廣告 → LP 落地頁 → 加 LINE → 報名直播 → 自動提醒 → YT 直播 → 自動追單 → TapPay 收款 → 自動交付
+    ```
+
+    ### 部署前準備
+
+    1. LINE 官方帳號 + Messaging API Channel（Token + Secret）
+    2. TapPay 商戶帳號（Partner Key + Merchant ID + App ID + App Key）
+    3. Meta Pixel ID（選填，用於廣告追蹤）
+
+  variables:
+    - key: SITE_NAME
+      type: STRING
+      name: 課程名稱
+      description: 你的課程名稱，會顯示在網站標題和 LP
+    - key: BRAND_NAME
+      type: STRING
+      name: 品牌名
+      description: 你的品牌名稱
+    - key: INSTRUCTOR_NAME
+      type: STRING
+      name: 講師名字
+      description: 你的名字，顯示在 LP 講師區
+    - key: LINE_CHANNEL_TOKEN
+      type: STRING
+      name: LINE Channel Access Token
+      description: 從 LINE Developers Console 取得
+    - key: LINE_CHANNEL_SECRET
+      type: STRING
+      name: LINE Channel Secret
+      description: 從 LINE Developers Console 取得
+    - key: ADMIN_USER_ID
+      type: STRING
+      name: 管理者 LINE User ID
+      description: 你自己的 LINE User ID（Bot 會把通知推給你）
+    - key: TAPPAY_PARTNER_KEY
+      type: STRING
+      name: TapPay Partner Key
+      description: 從 TapPay 後台取得
+    - key: TAPPAY_MERCHANT_ID
+      type: STRING
+      name: TapPay Merchant ID
+      description: 從 TapPay 後台取得
+    - key: TAPPAY_APP_ID
+      type: STRING
+      name: TapPay App ID
+      description: 從 TapPay 後台取得
+    - key: TAPPAY_APP_KEY
+      type: STRING
+      name: TapPay App Key
+      description: 從 TapPay 後台取得
+    - key: META_PIXEL_ID
+      type: STRING
+      name: Meta Pixel ID
+      description: 選填，用於廣告轉換追蹤
+    - key: PUBLIC_DOMAIN
+      type: DOMAIN
+      name: 課程網站網域
+      description: 課程平台的網域
+    - key: BOT_DOMAIN
+      type: DOMAIN
+      name: LINE Bot 網域
+      description: LINE Bot 的 Webhook 網域
+
+  services:
+    # === MongoDB ===
+    - name: mongodb
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/mongodb.svg
+      template: PREBUILT
+      spec:
+        source:
+          image: mongo:7
+        ports:
+          - id: database
+            port: 27017
+            type: TCP
+        volumes:
+          - id: data
+            dir: /data/db
+        env:
+          MONGO_INITDB_ROOT_USERNAME:
+            default: root
+          MONGO_INITDB_ROOT_PASSWORD:
+            default: ${PASSWORD}
+
+    # === 課程平台 Web ===
+    - name: web
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/nodejs.svg
+      template: GIT
+      domainKey: PUBLIC_DOMAIN
+      dependencies:
+        - mongodb
+      spec:
+        source:
+          github:
+            repoID: 1201875017
+            branch: main
+            subDirectory: web
+        ports:
+          - id: web
+            port: 3000
+            type: HTTP
+        env:
+          SITE_NAME:
+            default: ${SITE_NAME}
+          BRAND_NAME:
+            default: ${BRAND_NAME}
+          INSTRUCTOR_NAME:
+            default: ${INSTRUCTOR_NAME}
+          LINE_CHANNEL_TOKEN:
+            default: ${LINE_CHANNEL_TOKEN}
+          LINE_CHANNEL_SECRET:
+            default: ${LINE_CHANNEL_SECRET}
+          ADMIN_USER_ID:
+            default: ${ADMIN_USER_ID}
+          TAPPAY_PARTNER_KEY:
+            default: ${TAPPAY_PARTNER_KEY}
+          TAPPAY_MERCHANT_ID:
+            default: ${TAPPAY_MERCHANT_ID}
+          TAPPAY_APP_ID:
+            default: ${TAPPAY_APP_ID}
+          TAPPAY_APP_KEY:
+            default: ${TAPPAY_APP_KEY}
+          TAPPAY_ENV:
+            default: sandbox
+          META_PIXEL_ID:
+            default: ${META_PIXEL_ID}
+          PUBLIC_BASE_URL:
+            default: https://${PUBLIC_DOMAIN}
+          MONGODB_URI:
+            default: mongodb://root:${PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}
+            expose: false
+          PORT:
+            default: "3000"
+
+    # === LINE Bot ===
+    - name: bot
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/nodejs.svg
+      template: GIT
+      domainKey: BOT_DOMAIN
+      dependencies:
+        - mongodb
+      spec:
+        source:
+          github:
+            repoID: 1201875017
+            branch: main
+            subDirectory: bot
+        ports:
+          - id: bot
+            port: 3000
+            type: HTTP
+        env:
+          CHANNEL_ACCESS_TOKEN:
+            default: ${LINE_CHANNEL_TOKEN}
+          CHANNEL_SECRET:
+            default: ${LINE_CHANNEL_SECRET}
+          ADMIN_USER_ID:
+            default: ${ADMIN_USER_ID}
+          SITE_NAME:
+            default: ${SITE_NAME}
+          BRAND_NAME:
+            default: ${BRAND_NAME}
+          WEB_URL:
+            default: https://${PUBLIC_DOMAIN}
+          META_PIXEL_ID:
+            default: ${META_PIXEL_ID}
+          MONGODB_URI:
+            default: mongodb://root:${PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}
+            expose: false
+          PORT:
+            default: "3000"
+
+  instructions:
+    - type: TEXT
+      title: 部署完成後
+      content: |
+        1. 到 LINE Developers 設定 Webhook URL：https://${BOT_DOMAIN}/callback
+        2. 關閉 LINE 官方帳號的「自動回覆訊息」
+        3. TapPay 測試卡號：4242 4242 4242 4242（到期日和 CVC 隨便填）
+        4. 上線收款前把 TAPPAY_ENV 改成 production
+    - type: DOMAIN
+      title: 課程平台
+      content: ${PUBLIC_DOMAIN}
+    - type: DOMAIN
+      title: LINE Bot Webhook
+      content: ${BOT_DOMAIN}/callback
+
+locales:
+  zh-TW:
+    description: 一鍵部署完整線上課程自動化系統（課程網站 + LINE Bot + 金流 + 廣告追蹤）
+    variables:
+      - key: SITE_NAME
+        name: 課程名稱
+        description: 你的課程名稱，會顯示在網站標題和 LP
+      - key: BRAND_NAME
+        name: 品牌名
+        description: 你的品牌名稱
+      - key: INSTRUCTOR_NAME
+        name: 講師名字
+        description: 你的名字，顯示在 LP 講師區
+      - key: LINE_CHANNEL_TOKEN
+        name: LINE Channel Access Token
+        description: 從 LINE Developers Console 取得
+      - key: LINE_CHANNEL_SECRET
+        name: LINE Channel Secret
+        description: 從 LINE Developers Console 取得
+      - key: ADMIN_USER_ID
+        name: 管理者 LINE User ID
+        description: 你自己的 LINE User ID（Bot 會把通知推給你）
+      - key: TAPPAY_PARTNER_KEY
+        name: TapPay Partner Key
+        description: 從 TapPay 後台取得
+      - key: TAPPAY_MERCHANT_ID
+        name: TapPay Merchant ID
+        description: 從 TapPay 後台取得
+      - key: TAPPAY_APP_ID
+        name: TapPay App ID
+        description: 從 TapPay 後台取得
+      - key: TAPPAY_APP_KEY
+        name: TapPay App Key
+        description: 從 TapPay 後台取得
+      - key: META_PIXEL_ID
+        name: Meta Pixel ID
+        description: 選填，用於廣告轉換追蹤
+      - key: PUBLIC_DOMAIN
+        name: 課程網站網域
+        description: 課程平台的網域
+      - key: BOT_DOMAIN
+        name: LINE Bot 網域
+        description: LINE Bot 的 Webhook 網域
