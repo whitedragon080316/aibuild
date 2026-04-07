@@ -173,6 +173,8 @@ npx zeabur@latest variable list --id WEB_SERVICE_ID -i=false 2>/dev/null
 ## 專案結構
 
 ```
+CLAUDE.md         — 你正在讀的這份（AI 助手的行為指南）
+skills/           — Claude Code 的能力擴充（line-bot / tappay / notion 等）
 web/              — 課程平台（LP + 結帳 + 課程觀看）
 bot/              — LINE Bot（報名 + 提醒 + 追單 + AI 分身）
 bot/lib/          — Flex 卡片模板
