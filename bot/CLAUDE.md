@@ -60,8 +60,8 @@ AI 版只需生成 wave 2,3,5 × 3 分眾 = 9 則。
 
 ```
 # 必填
-LINE_CHANNEL_TOKEN=       ← LINE Developers 取得
-LINE_CHANNEL_SECRET=      ← LINE Developers 取得
+CHANNEL_ACCESS_TOKEN=     ← LINE Developers 取得
+CHANNEL_SECRET=           ← LINE Developers 取得
 ADMIN_USER_ID=            ← 你的 LINE User ID
 BRAND_NAME=               ← 你的品牌名
 INSTRUCTOR_NAME=          ← 你的名字

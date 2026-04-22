@@ -47,7 +47,7 @@ user_invocable: true
 ```bash
 npx zeabur@latest variable create \
   --id SERVICE_ID \
-  --key "LINE_CHANNEL_SECRET=學員給的值" \
+  --key "CHANNEL_SECRET=學員給的值" \
   -y -i=false
 ```
 
@@ -142,7 +142,7 @@ npx zeabur@latest variable list --id SERVICE_ID -i=false
 ```
 
 列出哪些已設定、哪些還缺：
-- [ ] LINE_CHANNEL_SECRET
+- [ ] CHANNEL_SECRET
 - [ ] CHANNEL_ACCESS_TOKEN
 - [ ] ADMIN_USER_ID
 

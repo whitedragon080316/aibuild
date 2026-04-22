@@ -79,8 +79,8 @@ Claude Code 操作：
 部署完成後，用 Zeabur CLI 設定所有環境變數：
 
 ```
-LINE_CHANNEL_TOKEN=（學員給的值）
-LINE_CHANNEL_SECRET=（學員給的值）
+CHANNEL_ACCESS_TOKEN=（學員給的值）
+CHANNEL_SECRET=（學員給的值）
 ADMIN_USER_ID=（學員給的值）
 BRAND_NAME=（學員給的值）
 INSTRUCTOR_NAME=（學員給的值）
@@ -106,8 +106,8 @@ npx zeabur@latest deploy
 SITE_NAME=（課程名稱）
 BRAND_NAME=（品牌名）
 PUBLIC_BASE_URL=（部署後取得的 URL）
-LINE_CHANNEL_TOKEN=（同上）
-LINE_CHANNEL_SECRET=（同上）
+CHANNEL_ACCESS_TOKEN=（同上）
+CHANNEL_SECRET=（同上）
 TAPPAY_PARTNER_KEY=（學員給的值）
 TAPPAY_MERCHANT_ID=（學員給的值）
 TAPPAY_APP_ID=（學員給的值）

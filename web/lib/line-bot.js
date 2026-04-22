@@ -33,13 +33,14 @@ const POST_WAVES = [
 // ============ INIT ============
 
 function initBot() {
-  if (!process.env.LINE_CHANNEL_TOKEN) {
-    console.log('LINE Bot: No CHANNEL_TOKEN, bot disabled');
+  const token = process.env.CHANNEL_ACCESS_TOKEN || process.env.LINE_CHANNEL_TOKEN;
+  if (!token) {
+    console.log('LINE Bot: No CHANNEL_ACCESS_TOKEN, bot disabled');
     return null;
   }
 
   client = new messagingApi.MessagingApiClient({
-    channelAccessToken: process.env.LINE_CHANNEL_TOKEN
+    channelAccessToken: token
   });
 
   // Parse sessions from env
@@ -85,7 +86,7 @@ function parseSessions() {
 function webhookMiddleware(req, res) {
   // Verify signature
   const signature = req.headers['x-line-signature'];
-  const secret = process.env.LINE_CHANNEL_SECRET;
+  const secret = process.env.CHANNEL_SECRET || process.env.LINE_CHANNEL_SECRET;
   if (!signature || !secret) return res.status(403).send('No signature');
 
   const hash = crypto.createHmac('SHA256', secret).update(req.rawBody).digest('base64');

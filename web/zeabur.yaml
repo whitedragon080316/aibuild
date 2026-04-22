@@ -23,10 +23,10 @@ spec:
         PUBLIC_BASE_URL:
           description: 你的網域（https 開頭）
           required: true
-        LINE_CHANNEL_TOKEN:
+        CHANNEL_ACCESS_TOKEN:
           description: LINE Channel Access Token
           required: true
-        LINE_CHANNEL_SECRET:
+        CHANNEL_SECRET:
           description: LINE Channel Secret
           required: true
         ADMIN_USER_ID:

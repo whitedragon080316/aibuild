@@ -42,7 +42,7 @@ npx zeabur@latest variable list --id WEB_SERVICE_ID -i=false 2>/dev/null
 | 設定 | 怎麼拿到 | 設到哪 |
 |------|----------|--------|
 | CHANNEL_ACCESS_TOKEN | LINE Developers → Messaging API → Issue | bot service |
-| LINE_CHANNEL_SECRET | LINE Developers → Basic settings | bot service |
+| CHANNEL_SECRET | LINE Developers → Basic settings | bot service |
 | BRAND_NAME | 問學員 | bot + web |
 | INSTRUCTOR_NAME | 問學員 | bot + web |
 | SITE_NAME | 問學員 | web |
@@ -100,7 +100,7 @@ npx zeabur@latest variable list --id WEB_SERVICE_ID -i=false 2>/dev/null
 3. 問：「Basic settings 頁面，把 Channel secret 複製貼給我」
    - 拿到 → 立刻設定：
    ```bash
-   npx zeabur@latest variable create --id BOT_SERVICE_ID --key "LINE_CHANNEL_SECRET=拿到的值" -y -i=false
+   npx zeabur@latest variable create --id BOT_SERVICE_ID --key "CHANNEL_SECRET=拿到的值" -y -i=false
    ```
    - 回覆「✅ 設好了，下一個」
 
